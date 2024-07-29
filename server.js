@@ -36,6 +36,12 @@ app.post('/create-customer', async (req, res) => {
     }
 });
 
+// Endpoint to handle startup requests
+app.get('/startup', (req, res) => {
+    console.log('Startup request received');
+    res.status(200).send('Server booted up successfully!');
+});
+
 app.post('/check-subscription', async (req, res) => {
   const { customerId } = req.body;
   const priceId = 'price_1PhJTQK1XYgUnDcgD3Co6MvA';
