@@ -1,6 +1,6 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
-const stripe = require('stripe')('sk_test_51PdpAuK1XYgUnDcgcISWmaMD0enBS06Bkwu1T2ChtqhhjOPglmDHSNaznFWF3H188mXTavd7JDxlS8N7UzXUGWjY00oig9uwaW');
+const stripe = require('stripe')('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');
 const app = express();
 
 app.use(express.json());
