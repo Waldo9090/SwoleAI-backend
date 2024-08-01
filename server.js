@@ -44,7 +44,7 @@ app.get('/startup', (req, res) => {
 
 app.post('/check-subscription', async (req, res) => {
   const { customerId } = req.body;
-  const priceId = 'price_1PiKZVRt7WmPsSIVuHQ9VKRz';
+  const priceId = 'price_1Pj403Rt7WmPsSIVQXx44rG3';
 
   try {
     // Retrieve customer
