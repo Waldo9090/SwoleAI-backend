@@ -100,7 +100,7 @@ app.post('/create-subscription', async (req, res) => {
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
-      trial_period_days: trialPeriodDays || 3, // Set trial period in days (default to 0 if not provided)
+      trial_period_days: 3, // Set trial period in days (default to 0 if not provided)
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['latest_invoice.payment_intent'],
