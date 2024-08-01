@@ -90,13 +90,14 @@ app.post('/create-payment-intent', async (req, res) => {
 });
 
 app.post('/create-subscription', async (req, res) => {
-  const { customerId, priceId } = req.body;
+  const { customerId, priceId, paymentMethodId } = req.body;
 
   if (!customerId || !priceId) {
     return res.status(400).send({ error: { message: 'Missing required parameters' } });
   }
 
   try {
+    // Create a subscription with an incomplete payment setup
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
@@ -106,8 +107,13 @@ app.post('/create-subscription', async (req, res) => {
       expand: ['latest_invoice', 'latest_invoice.payment_intent'],
     });
 
-    console.log('Subscription response:', subscription);
+    // Attach payment method if provided
+    if (paymentMethodId) {
+      await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
+      await stripe.customers.update(customerId, { invoice_settings: { default_payment_method: paymentMethodId } });
+    }
 
+    // Retrieve the PaymentIntent and clientSecret
     const latestInvoice = subscription.latest_invoice;
     const paymentIntent = latestInvoice ? latestInvoice.payment_intent : null;
     const clientSecret = paymentIntent ? paymentIntent.client_secret : null;
