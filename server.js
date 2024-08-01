@@ -90,32 +90,26 @@ app.post('/create-payment-intent', async (req, res) => {
 });
 
 app.post('/create-subscription', async (req, res) => {
-  const { customerId, priceId, paymentMethodId } = req.body;
+  const customerId = req.cookies['customer'];
+  const priceId = req.body.priceId;
 
   if (!customerId || !priceId) {
     return res.status(400).send({ error: { message: 'Missing required parameters' } });
   }
 
   try {
-    // Create a subscription with an incomplete payment setup
+    // Create the subscription with a 3-day trial period
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
-      trial_period_days: 3,
+      trial_period_days: 3, // Set the trial period to 3 days
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
-      expand: ['latest_invoice', 'latest_invoice.payment_intent'],
+      expand: ['latest_invoice.payment_intent'],
     });
 
-    // Attach payment method if provided
-    if (paymentMethodId) {
-      await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
-      await stripe.customers.update(customerId, { invoice_settings: { default_payment_method: paymentMethodId } });
-    }
-
-    // Retrieve the PaymentIntent and clientSecret
-    const latestInvoice = subscription.latest_invoice;
-    const paymentIntent = latestInvoice ? latestInvoice.payment_intent : null;
+    // Extract PaymentIntent and client_secret from the subscription
+    const paymentIntent = subscription.latest_invoice.payment_intent;
     const clientSecret = paymentIntent ? paymentIntent.client_secret : null;
 
     res.send({
@@ -127,6 +121,7 @@ app.post('/create-subscription', async (req, res) => {
     res.status(400).send({ error: { message: error.message } });
   }
 });
+
 
 
 
