@@ -96,11 +96,14 @@ app.post('/create-subscription', async (req, res) => {
     return res.status(400).send({ error: { message: 'Missing required parameters' } });
   }
 
+  // Calculate the trial_end timestamp (3 days from now)
+  const trialEndTimestamp = Math.floor(Date.now() / 1000) + (3 * 24 * 60 * 60);
+
   try {
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
-      trial_period_days: 3, // Set trial period in days (default to 0 if not provided)
+      trial_end: trialEndTimestamp, // Set the trial end timestamp
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['latest_invoice.payment_intent'],
@@ -115,7 +118,6 @@ app.post('/create-subscription', async (req, res) => {
     res.status(400).send({ error: { message: error.message } });
   }
 });
-
 
 
 
