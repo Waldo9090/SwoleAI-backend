@@ -100,7 +100,7 @@ app.post('/create-subscription', async (req, res) => {
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
-      trial_period_days: 3, // Set trial period to 3 days
+      trial_period_days: 3,
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['latest_invoice', 'latest_invoice.payment_intent'],
@@ -108,9 +108,13 @@ app.post('/create-subscription', async (req, res) => {
 
     console.log('Subscription response:', subscription);
 
+    const latestInvoice = subscription.latest_invoice;
+    const paymentIntent = latestInvoice ? latestInvoice.payment_intent : null;
+    const clientSecret = paymentIntent ? paymentIntent.client_secret : null;
+
     res.send({
       subscriptionId: subscription.id,
-      clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+      clientSecret: clientSecret || 'No client secret available',
     });
   } catch (error) {
     console.error('Error creating subscription:', error);
