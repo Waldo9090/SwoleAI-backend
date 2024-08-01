@@ -103,24 +103,25 @@ app.post('/create-subscription', async (req, res) => {
       trial_period_days: 3, // Set the trial period
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
-      expand: ['latest_invoice.payment_intent'],
-      trial_settings: { end_behavior: { missing_payment_method: 'cancel' } }, // Ensure subscription is handled correctly at the end of trial
+      expand: ['latest_invoice'],
+      trial_settings: { end_behavior: { missing_payment_method: 'create_invoice' } }, // Handle trial period behavior
     });
 
-    if (subscription.latest_invoice && subscription.latest_invoice.payment_intent) {
+    if (subscription.latest_invoice) {
       res.send({
         subscriptionId: subscription.id,
-        clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+        clientSecret: subscription.latest_invoice.client_secret,
       });
     } else {
-      console.error('Missing payment intent data:', subscription);
-      res.status(400).send({ error: { message: 'Payment intent not found' } });
+      console.error('Missing latest_invoice data:', subscription);
+      res.status(400).send({ error: { message: 'Invoice not found' } });
     }
   } catch (error) {
     console.error('Error creating subscription:', error);
     res.status(400).send({ error: { message: error.message } });
   }
 });
+
 
 
 
