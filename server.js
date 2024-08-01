@@ -90,8 +90,7 @@ app.post('/create-payment-intent', async (req, res) => {
 });
 
 app.post('/create-subscription', async (req, res) => {
-  const { customerId, priceId } = req.body;
-
+    const { customerId, priceId } = req.body;
 
   if (!customerId || !priceId) {
     return res.status(400).send({ error: { message: 'Missing required parameters' } });
@@ -102,25 +101,28 @@ app.post('/create-subscription', async (req, res) => {
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
-      trial_period_days: 3, // Set the trial period to 3 days
+      trial_period_days: 3,
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['latest_invoice.payment_intent'],
     });
 
-    // Extract PaymentIntent and client_secret from the subscription
-    const paymentIntent = subscription.latest_invoice.payment_intent;
-    const clientSecret = paymentIntent ? paymentIntent.client_secret : null;
+    // Create a SetupIntent if needed to collect payment details
+    const setupIntent = await stripe.setupIntents.create({
+      customer: customerId,
+      payment_method_types: ['card'],
+    });
 
     res.send({
       subscriptionId: subscription.id,
-      clientSecret: clientSecret || 'No client secret available',
+      setupIntentClientSecret: setupIntent.client_secret,
     });
   } catch (error) {
     console.error('Error creating subscription:', error);
     res.status(400).send({ error: { message: error.message } });
   }
 });
+
 
 
 
