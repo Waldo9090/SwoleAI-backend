@@ -100,10 +100,11 @@ app.post('/create-subscription', async (req, res) => {
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
-      trial_period_days: 3, // Add this line to set the trial period
+      trial_period_days: 3, // Set the trial period
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['latest_invoice.payment_intent'],
+      trial_settings: { end_behavior: { missing_payment_method: 'cancel' } }, // Ensure subscription is handled correctly at the end of trial
     });
 
     if (subscription.latest_invoice && subscription.latest_invoice.payment_intent) {
@@ -120,6 +121,7 @@ app.post('/create-subscription', async (req, res) => {
     res.status(400).send({ error: { message: error.message } });
   }
 });
+
 
 
 
