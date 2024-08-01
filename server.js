@@ -90,8 +90,8 @@ app.post('/create-payment-intent', async (req, res) => {
 });
 
 app.post('/create-subscription', async (req, res) => {
-  const customerId = req.cookies['customer'];
-  const priceId = req.body.priceId;
+  const { customerId, priceId } = req.body;
+
 
   if (!customerId || !priceId) {
     return res.status(400).send({ error: { message: 'Missing required parameters' } });
