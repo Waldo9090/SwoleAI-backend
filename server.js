@@ -106,15 +106,21 @@ app.post('/create-subscription', async (req, res) => {
       expand: ['latest_invoice.payment_intent'],
     });
 
-    res.send({
-      subscriptionId: subscription.id,
-      clientSecret: subscription.latest_invoice.payment_intent.client_secret,
-    });
+    if (subscription.latest_invoice && subscription.latest_invoice.payment_intent) {
+      res.send({
+        subscriptionId: subscription.id,
+        clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+      });
+    } else {
+      console.error('Missing payment intent data:', subscription);
+      res.status(400).send({ error: { message: 'Payment intent not found' } });
+    }
   } catch (error) {
     console.error('Error creating subscription:', error);
     res.status(400).send({ error: { message: error.message } });
   }
 });
+
 
 
 
