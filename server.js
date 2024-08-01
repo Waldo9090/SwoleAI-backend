@@ -100,22 +100,16 @@ app.post('/create-subscription', async (req, res) => {
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
-      trial_period_days: 3, // Set the trial period
+      trial_period_days: trialPeriodDays || 3, // Set trial period in days (default to 0 if not provided)
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
-      expand: ['latest_invoice'],
-      trial_settings: { end_behavior: { missing_payment_method: 'create_invoice' } }, // Handle trial period behavior
+      expand: ['latest_invoice.payment_intent'],
     });
 
-    if (subscription.latest_invoice) {
-      res.send({
-        subscriptionId: subscription.id,
-        clientSecret: subscription.latest_invoice.client_secret,
-      });
-    } else {
-      console.error('Missing latest_invoice data:', subscription);
-      res.status(400).send({ error: { message: 'Invoice not found' } });
-    }
+    res.send({
+      subscriptionId: subscription.id,
+      clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+    });
   } catch (error) {
     console.error('Error creating subscription:', error);
     res.status(400).send({ error: { message: error.message } });
