@@ -103,12 +103,14 @@ app.post('/create-subscription', async (req, res) => {
       trial_period_days: 3, // Set trial period to 3 days
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
-      expand: ['latest_invoice.payment_intent'],
+      expand: ['latest_invoice', 'latest_invoice.payment_intent'],
     });
+
+    console.log('Subscription response:', subscription);
 
     res.send({
       subscriptionId: subscription.id,
-      clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+      clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
     });
   } catch (error) {
     console.error('Error creating subscription:', error);
