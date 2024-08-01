@@ -89,7 +89,7 @@ app.post('/create-payment-intent', async (req, res) => {
     }
 });
 
-app.post('/create-checkout-session', async (req, res) => {
+app.post('/create-subscription', async (req, res) => {
   const { customerId, priceId } = req.body;
 
   if (!customerId || !priceId) {
@@ -97,30 +97,21 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 
   try {
-    // Create a Checkout Session with a free trial
-    const session = await stripe.checkout.sessions.create({
+    const subscription = await stripe.subscriptions.create({
       customer: customerId,
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      subscription_data: {
-        trial_period_days: 3, // Set your trial period here (in days)
-      },
-      success_url: `${YOUR_DOMAIN}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${YOUR_DOMAIN}/cancel.html`,
-      payment_method_types: ['card'], // This supports Apple Pay if available
-      billing_address_collection: 'auto',
+      items: [{ price: priceId }],
+      trial_period_days: 3, // Set trial period to 3 days
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
+      expand: ['latest_invoice.payment_intent'],
     });
 
-    res.redirect(303, session.url);
+    res.send({
+      subscriptionId: subscription.id,
+      clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+    });
   } catch (error) {
-    console.error('Error creating checkout session:', error);
+    console.error('Error creating subscription:', error);
     res.status(400).send({ error: { message: error.message } });
   }
 });
