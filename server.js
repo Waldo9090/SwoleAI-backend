@@ -122,40 +122,55 @@ app.post('/create-subscription', async (req, res) => {
     }
 });
 
-// Create a SetupIntent
+
 app.post('/create-setup-intent', async (req, res) => {
-    const { customerId } = req.body;
-
-    if (!customerId) {
-        return res.status(400).json({ error: 'Customer ID is required' });
-    }
-
     try {
+        const { customerId } = req.body;
+
+        if (!customerId) {
+            return res.status(400).json({ error: 'Customer ID is required' });
+        }
+
         // Create a SetupIntent
         const setupIntent = await stripe.setupIntents.create({
             customer: customerId,
-            payment_method_types: ['card'],
-        });
-
-        // Create a PaymentMethod (without attaching it to the customer yet)
-        const paymentMethod = await stripe.paymentMethods.create({
-            type: 'card',
-        });
-
-        // Attach the PaymentMethod to the Customer
-        await stripe.paymentMethods.attach(paymentMethod.id, {
-            customer: customerId,
+            usage: 'off_session', // Use 'off_session' if you're setting up payment methods for future use
         });
 
         res.json({
             clientSecret: setupIntent.client_secret,
-            paymentMethodId: paymentMethod.id
         });
     } catch (error) {
-        console.error('Error creating setup intent:', error);
+        console.error('Error creating SetupIntent:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
+// Endpoint to retrieve payment method ID after setup
+app.get('/get-payment-method-id', async (req, res) => {
+    try {
+        const { customerId } = req.body;
+        
+        // Retrieve customer's payment methods
+        const paymentMethods = await stripe.paymentMethods.list({
+            customer: customerId,
+            type: 'card', // You can adjust this based on the payment method type
+        });
+
+        if (paymentMethods.data.length > 0) {
+            res.json({
+                paymentMethodId: paymentMethods.data[0].id, // Return the first payment method ID
+            });
+        } else {
+            res.status(404).json({ error: 'No payment methods found' });
+        }
+    } catch (error) {
+        console.error('Error retrieving payment method ID:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
 
 
 app.listen(3000, () => {
