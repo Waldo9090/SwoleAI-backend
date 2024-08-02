@@ -146,18 +146,27 @@ app.post('/create-setup-intent', async (req, res) => {
     }
 });
 
-// Endpoint to retrieve payment method ID after setup
 app.get('/get-payment-method-id', async (req, res) => {
     try {
         const { customerId } = req.query;
         
+        if (!customerId) {
+            return res.status(400).json({ error: 'Customer ID is required' });
+        }
+
+        // Log the customer ID for debugging
+        console.log('Customer ID:', customerId);
+
         // Retrieve customer's payment methods
         const paymentMethods = await stripe.paymentMethods.list({
             customer: customerId,
-            type: 'card', // You can adjust this based on the payment method type
+            type: 'card', // Adjust this based on the payment method type
         });
 
-        if (paymentMethods.data.length > 0) {
+        // Log the retrieved payment methods for debugging
+        console.log('Retrieved payment methods:', paymentMethods);
+
+        if (paymentMethods.data && paymentMethods.data.length > 0) {
             res.json({
                 paymentMethodId: paymentMethods.data[0].id, // Return the first payment method ID
             });
@@ -169,6 +178,7 @@ app.get('/get-payment-method-id', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
 
 
 
