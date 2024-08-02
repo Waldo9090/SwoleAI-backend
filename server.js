@@ -149,7 +149,7 @@ app.post('/create-setup-intent', async (req, res) => {
 // Endpoint to retrieve payment method ID after setup
 app.get('/get-payment-method-id', async (req, res) => {
     try {
-        const { customerId } = req.body;
+        const { customerId } = req.query;
         
         // Retrieve customer's payment methods
         const paymentMethods = await stripe.paymentMethods.list({
