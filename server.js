@@ -122,6 +122,7 @@ app.post('/create-subscription', async (req, res) => {
     }
 });
 
+// Create a SetupIntent
 app.post('/create-setup-intent', async (req, res) => {
     const { customerId } = req.body;
 
@@ -136,21 +137,26 @@ app.post('/create-setup-intent', async (req, res) => {
             payment_method_types: ['card'],
         });
 
-        // Attach a payment method to the customer
+        // Create a PaymentMethod (without attaching it to the customer yet)
         const paymentMethod = await stripe.paymentMethods.create({
             type: 'card',
+        });
+
+        // Attach the PaymentMethod to the Customer
+        await stripe.paymentMethods.attach(paymentMethod.id, {
             customer: customerId,
         });
 
-        res.json({ 
+        res.json({
             clientSecret: setupIntent.client_secret,
-            paymentMethodId: paymentMethod.id 
+            paymentMethodId: paymentMethod.id
         });
     } catch (error) {
         console.error('Error creating setup intent:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
 
 app.listen(3000, () => {
     console.log('Server running on http://localhost:3000');
