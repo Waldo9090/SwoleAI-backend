@@ -114,13 +114,14 @@ app.post('/create-subscription', async (req, res) => {
 
         res.send({
             subscriptionId: subscription.id,
-            clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+            // Not returning clientSecret since no payment is processed immediately
         });
     } catch (error) {
         console.error('Error creating subscription:', error);
         res.status(400).send({ error: { message: error.message } });
     }
 });
+
 
 
 app.post('/create-setup-intent', async (req, res) => {
